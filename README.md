@@ -16,6 +16,18 @@ The SHA256 hashing technique and dynamic key generation are used to increase the
 ## Conclusion
 The security of network devices can be greatly strengthened by implementing the sophisticated cryptographic strategy described in this research, lowering the danger of identity-based assaults. The SHA256 hashing algorithm and dynamic key generation work together to create a reliable and secure identity management system for network devices.
 
+## Steps to execute the code
+
+1. Begin by ensuring that both connecting devices, such as your laptop and the Raspberry Pi, are connected to the same network.
+
+2. You will find two source files that have been provided: "Network.py" and "Authentication.py". "Network.py" functions as the server, while "Authentication.py" serves as the client. To establish a secure connection, it is necessary to specify the IP address and port number.
+
+3. The IP address of the Raspberry Pi should be indicated within the code of "Network.py" which will be executed on the laptop. Similarly, the IP address of the laptop should be mentioned within the code of "Authentication.py" to be executed on the Raspberry Pi.
+
+4. Once the IP addresses have been appropriately specified, begin by executing the "Network.py" program on the laptop. Following that, run the "Authentication.py" code on the Raspberry Pi.
+
+Please note that these steps should be followed in the sequence provided to ensure the proper execution of the code.
+
 
 This repository contains an src folder in which a network and authentication file is uploaded...
 
