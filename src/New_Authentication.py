@@ -71,7 +71,7 @@ with open("client_private_key.pem", "wb") as f:
 
 # Create a socket and connect to the server
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(("IP address of the Server", 8888))
+client_socket.connect(("192.168.0.105", 8888))
 
 # Authenticate the client with the server
 authenticated = authenticate_server(client_socket, client_private_key)
