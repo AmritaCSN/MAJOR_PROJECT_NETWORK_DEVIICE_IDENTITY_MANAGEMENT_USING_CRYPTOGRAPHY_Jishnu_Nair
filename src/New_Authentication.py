@@ -21,36 +21,6 @@ def Authentication_SERVER():
         print(message)
         return s
 
-
-def LINK_ESTABLISHED():
-    global address
-    s.listen(1)
-    conn, address = s.accept()
-    print("Address of NETWORK_DEVICE_ID: {}:{}".format(address[0], str(address[1])))
-    return conn
-
-
-def OR_OPERATOR(binary_characters_1, binary_characters_2):
-    return '{0:0{1}b}'.format(int(binary_characters_1, 2) | int(binary_characters_2, 2), BITS)
-
-
-def right_logical_shift_OPERATOR(binary):
-    result = []
-    for digit in binary:
-        val = int(digit, 2)
-        bin_format = val >> 1 if val >= 0 else (val + (1 << BITS)) >> 1
-        result.append('{0:0{1}b}'.format(int(bin_format), BITS))
-    return result
-
-
-def left_circular_shift_OPERATOR(binary):
-    result = []
-    for bin_str in binary:
-        val = bin_str[1:] + bin_str[0]
-        result.append(val)
-    return result
-
-
 def right_circular_shift_OPERATOR(binary):
     result = []
     for digit in binary:
