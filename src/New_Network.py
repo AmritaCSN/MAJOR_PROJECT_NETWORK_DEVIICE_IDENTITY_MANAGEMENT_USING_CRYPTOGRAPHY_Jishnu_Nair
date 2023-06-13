@@ -1,81 +1,98 @@
 import socket
-import time
-from random import randint, randrange
-import hashlib
-import sys
-import random
+import os
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
 
-# Global Variables
-fnb_output = []
-fna_output = []
-BITS = 8
-Authentication_SERVER = '192.168.162.68'
-port = 5900
-session_counter = 0
+def generate_key_pair():
+    # Generate RSA key pair
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
+    public_key = private_key.public_key()
+    # Serialize the keys to PEM format
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    public_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    return private_key, private_pem, public_pem
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Internet protocol settings
-s.connect((Authentication_SERVER, port))  # Connect to Authentication_SERVER by sending NETWORK_DEVICE_ID
+def authenticate_client(client_socket, server_private_key):
+    # Receive client's public key
+    client_public_key = client_socket.recv(1024)
 
+    # Generate a random challenge
+    challenge = os.urandom(16)
 
-# Custom defined functions
-def sha(data):
-    sha_obj = hashlib.sha256()
-    sha_obj.update(data.encode('utf-8'))
-    return sha_obj.hexdigest()
+    # Encrypt the challenge with the client's public key
+    public_key = serialization.load_pem_public_key(client_public_key)
+    encrypted_challenge = public_key.encrypt(
+        challenge,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
 
+    # Send the encrypted challenge to the client
+    client_socket.sendall(encrypted_challenge)
 
-def fna(data, key):
-    return sha(data + key)
+    # Receive the response from the client
+    encrypted_response = client_socket.recv(1024)
 
+    # Decrypt the response with the server's private key
+    decrypted_response = server_private_key.decrypt(
+        encrypted_response,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
 
-def fnb(data, key):
-    return sha(key + data)
-
-
-def send_request_to_auth_server(data):
-    global session_counter
-    session_counter += 1
-    if session_counter >= 1000:
-        session_counter = 0
-    data = str(session_counter) + "|" + data
-    s.send(str.encode(data))
-
-
-def get_response_from_auth_server():
-    response = s.recv(1024)
-    return response.decode('utf-8')
-
-
-def authentication_system():
-    global fna_output, fnb_output
-    send_request_to_auth_server('REQUEST:AUTHENTICATION')
-    authentication_server_response = get_response_from_auth_server()
-    if authentication_server_response == 'SEND:PUBLIC_KEY':
-        public_key = str(randrange(10 ** 5, 10 ** 6))
-        send_request_to_auth_server('PUBLIC_KEY:' + public_key)
-        authentication_server_response = get_response_from_auth_server()
-        if authentication_server_response == 'SEND:DATA':
-            data = 'authentication-request-data'
-            fna_output = fna(data, public_key)
-            send_request_to_auth_server('FNA_OUTPUT:' + fna_output)
-            authentication_server_response = get_response_from_auth_server()
-            if authentication_server_response == 'SEND:DATA':
-                data = 'authentication-response-data'
-                fnb_output = fnb(data, public_key)
-                send_request_to_auth_server('FNB_OUTPUT:' + fnb_output)
-                authentication_server_response = get_response_from_auth_server()
-                if authentication_server_response    == 'SUCCESS:AUTHENTICATION':
-                    return True
-    return False
-
-
-def main():
-    global fna_output, fnb_output
-    if authentication_system():
-        print("Authentication successful.")
+    # Check if the response matches the challenge
+    if decrypted_response == challenge:
+        return True
     else:
-        print("Authentication failed.")
+        return False
 
+# Generate key pair for the server
+server_private_key, server_private_pem, server_public_pem = generate_key_pair()
 
-if __name__ == "__main__":
-    main()
+# Save the server's private key to a file (to be used for decryption)
+with open("server_private_key.pem", "wb") as f:
+    f.write(server_private_pem)
+
+# Create a socket and listen for incoming connections
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind(("localhost", 8888))
+server_socket.listen(1)
+
+print("Authentication Server is listening for connections...")
+
+while True:
+    # Accept a connection from a client
+    client_socket, addr = server_socket.accept()
+    print("Client connected:", addr)
+
+    # Authenticate the client
+    authenticated = authenticate_client(client_socket, server_private_key)
+
+    # Send authentication result to the client
+    if authenticated:
+        client_socket.sendall(b"Authenticated")
+        print("Client authenticated")
+    else:
+        client_socket.sendall(b"Authentication Failed")
+        print("Client authentication failed")
+
+    # Close the connection
+    client_socket.close()
