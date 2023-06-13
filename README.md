@@ -7,11 +7,8 @@ The "Network Device Identity Management using Cryptography" project seeks to pro
 To guarantee the confidentiality and integrity of data, authenticated encryption techniques, a subset of symmetric key cryptographic algorithms, are used. Authenticity ensures data integrity and validates its origins, while confidentiality prohibits unauthorised dissemination. This project acknowledges the requirement for authentication of some data elements, such as packet headers, which call for protection without encryption.
 
 ## Proposed Framework
-By developing a algorithm for user identification during network device access attempts, this project's main goal is to reduce identity-based assaults on network devices. To protect network devices from fraudulent operations, the suggested framework makes use of cryptography.
+By developing a algorithm for user identification during network device access attempts, this project's main goal is to reduce identity-based assaults on network devices. To protect network devices from fraudulent operations, the suggested framework makes use of dynamic key generation.
 
-A dynamic key generation approach that generates numerous random keys, improving randomness and boosting security, is incorporated into the framework. The Authentication server uses two functions, A and B, to execute logical and bitwise operations to create distinct random secrets during the exchange of secret seed pairs. 
-
-The SHA256 hashing technique and dynamic key generation are used to increase the security of network devices and provide a more robust identity management system.
 
 ## Conclusion
 By using the complex cryptographic technique presented in this research, network device security may be significantly increased, reducing the risk of identity-based attacks. A trustworthy and secure identity management system for network devices is created using dynamic key generation.
